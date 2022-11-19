@@ -14,7 +14,7 @@ local function ends_with(str, ending)
    return ending == "" or str:sub(-#ending) == ending
 end
 
-local function get_bookmarks()
+local function get_drives()
     local drives= {}
     local output = vim.fn.system("cmd /C net use")
     local tempDriveLetter = ""
@@ -28,7 +28,7 @@ local function get_bookmarks()
 
         if starts_with(line, "\\") then
             table.insert(drives, {
-                filename = tempDriveLetter,
+                filename = "Drive " .. tempDriveLetter,
                 lnum = tonumber(count),
                 col=1,
                 text = line,
@@ -40,7 +40,7 @@ local function get_bookmarks()
     return drives
 end
 
-local function make_entry_from_bookmarks()
+local function make_entry()
     local displayer = entry_display.create {
         items = {
             { width = 5 },
@@ -50,11 +50,9 @@ local function make_entry_from_bookmarks()
     }
 
     local make_display = function(entry)
-        local line_info = {entry.lnum, "TelescopeResultsLineNr"}
-
         return displayer {
-            line_info,
-            "Drive " .. entry.filename,
+            {entry.lnum, "TelescopeResultsLineNr"},
+            entry.filename,
             entry.text,
         }
     end
@@ -73,29 +71,24 @@ local function make_entry_from_bookmarks()
     end
 end
 
-local function make_bookmark_picker()
+local function make_picker()
     local make_finder = function()
-        local bookmarks = get_bookmarks()
-        if vim.tbl_isempty(bookmarks) then
-            print("No bookmarks! this should not happen with testing")
-            return
-        end
         return finders.new_table {
-            results = bookmarks,
-            entry_maker = make_entry_from_bookmarks(),
+            results = get_drives(),
+            entry_maker = make_entry(),
         }
     end
 
-    local initial_finder = make_finder()
     pickers.new({}, {
         prompt_title = "SMB Get UNC Path",
-        finder = initial_finder,
-        -- previewer = conf.qflist_previewer(opts),
-        sorter = conf.generic_sorter(opts),
-        attach_mappings = function(prompt_bufnr, map)
+        finder = make_finder(),
+        -- previewer = conf.qflist_previewer({}),
+        sorter = conf.generic_sorter({}),
+        attach_mappings = function(prompt_bufnr)
             actions.select_default:replace(function()
                 actions.close(prompt_bufnr)
                 local selection = action_state.get_selected_entry()
+                -- vim.inspect(selection)
                 vim.fn.setreg("\"", selection.text)
             end)
             return true
@@ -103,14 +96,10 @@ local function make_bookmark_picker()
     }):find()
 end
 
-local all = function()
-    make_bookmark_picker()
-end
-
 return require('telescope').register_extension {
     exports = {
         -- Default when to argument is given, i.e. :Telescope vim_bookmarks
-        smb_unc = all,
-        all = all,
+        smb_unc = make_picker,
+        all = make_picker,
     }
 }
