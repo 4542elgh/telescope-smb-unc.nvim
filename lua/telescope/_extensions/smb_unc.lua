@@ -2,7 +2,9 @@ local finders = require('telescope.finders')
 local pickers = require('telescope.pickers')
 local entry_display = require('telescope.pickers.entry_display')
 local conf = require('telescope.config').values
-local bookmark_actions = require('telescope._extensions.vim_bookmarks.actions')
+
+local actions = require "telescope.actions"
+local action_state = require "telescope.actions.state"
 
 local function starts_with(str, start)
    return str:sub(1, #start) == start
@@ -90,6 +92,14 @@ local function make_bookmark_picker()
         finder = initial_finder,
         -- previewer = conf.qflist_previewer(opts),
         sorter = conf.generic_sorter(opts),
+        attach_mappings = function(prompt_bufnr, map)
+            actions.select_default:replace(function()
+                actions.close(prompt_bufnr)
+                local selection = action_state.get_selected_entry()
+                vim.fn.setreg("\"", selection.text)
+            end)
+            return true
+        end,
     }):find()
 end
 
@@ -100,8 +110,7 @@ end
 return require('telescope').register_extension {
     exports = {
         -- Default when to argument is given, i.e. :Telescope vim_bookmarks
-        vim_bookmarks = all,
+        smb_unc = all,
         all = all,
-        actions = bookmark_actions
     }
 }
