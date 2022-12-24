@@ -91,6 +91,8 @@ local function make_picker()
                 -- vim.inspect(selection)
                 -- Yank to system clipboard
                 vim.fn.setreg("+y", selection.text)
+                -- Yank to vim registr 
+                vim.fn.setreg("\"", selection.text)
             end)
             return true
         end,
