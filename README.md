@@ -1,4 +1,4 @@
-# Telescope SMB path integration
+# Telescope SMB UNC integration
 [Telescope](https://github.com/nvim-telescope/telescope.nvim) picker for Windows SMB mapped drive plugin.
 
 ## How does it look?
