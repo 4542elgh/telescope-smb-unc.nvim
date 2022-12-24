@@ -89,7 +89,8 @@ local function make_picker()
                 actions.close(prompt_bufnr)
                 local selection = action_state.get_selected_entry()
                 -- vim.inspect(selection)
-                vim.fn.setreg("\"", selection.text)
+                -- Yank to system clipboard
+                vim.fn.setreg("+y", selection.text)
             end)
             return true
         end,
@@ -98,7 +99,7 @@ end
 
 return require('telescope').register_extension {
     exports = {
-        -- Default when to argument is given, i.e. :Telescope vim_bookmarks
+        -- Default when to argument is given, i.e. :Telescope smb_unc 
         smb_unc = make_picker,
         all = make_picker,
     }
